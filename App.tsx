@@ -369,27 +369,12 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50 py-8 px-4 font-sans">
       <header className="max-w-2xl mx-auto mb-10 flex flex-col gap-4">
-        {/* Producer Badge - Block element to avoid overlap */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 opacity-90 hover:opacity-100 transition-opacity cursor-default">
-            <div className="w-8 h-6 bg-red-600 rounded-lg flex items-center justify-center shadow-sm">
-              <div className="w-0 h-0 border-t-[5px] border-t-transparent border-l-[8px] border-l-white border-b-[5px] border-b-transparent ml-1"></div>
-            </div>
-            <span className="font-black text-slate-800 text-lg tracking-tight">제작: 클로이</span>
+        {/* Producer Badge */}
+        <div className="flex items-center gap-2 opacity-90 hover:opacity-100 transition-opacity cursor-default">
+          <div className="w-8 h-6 bg-red-600 rounded-lg flex items-center justify-center shadow-sm">
+            <div className="w-0 h-0 border-t-[5px] border-t-transparent border-l-[8px] border-l-white border-b-[5px] border-b-transparent ml-1"></div>
           </div>
-          
-          {/* API Key Settings Button */}
-          <button
-            onClick={() => setIsApiKeyModalOpen(true)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
-              hasApiKey 
-                ? 'bg-green-100 text-green-700 hover:bg-green-200' 
-                : 'bg-amber-100 text-amber-700 hover:bg-amber-200 animate-pulse'
-            }`}
-          >
-            <span className="text-lg">⚙️</span>
-            <span className="text-sm">{hasApiKey ? 'API 키 설정됨' : 'API 키 필요'}</span>
-          </button>
+          <span className="font-black text-slate-800 text-lg tracking-tight">제작: 클로이</span>
         </div>
         
         {/* Main Title - Centered block */}
@@ -401,6 +386,24 @@ export default function App() {
             유튜브 떡상 대본, 구조만 가져와서 내 주제로 다시 쓰기
           </p>
         </div>
+
+        {/* API Key Settings Button - Large and Prominent */}
+        <button
+          onClick={() => setIsApiKeyModalOpen(true)}
+          className={`w-full py-4 px-6 rounded-xl font-bold text-lg transition-all shadow-md hover:shadow-lg ${
+            hasApiKey 
+              ? 'bg-green-100 text-green-700 hover:bg-green-200 border-2 border-green-300' 
+              : 'bg-amber-100 text-amber-800 hover:bg-amber-200 border-2 border-amber-400 animate-pulse'
+          }`}
+        >
+          <div className="flex items-center justify-center gap-3">
+            <span className="text-2xl">🔑</span>
+            <span>{hasApiKey ? 'Gemini API 키 설정됨' : 'Gemini API 키 설정'}</span>
+          </div>
+          {!hasApiKey && (
+            <p className="text-sm mt-1 text-amber-700">API 키가 저장되지 않았습니다</p>
+          )}
+        </button>
       </header>
 
       <ApiKeyModal 
