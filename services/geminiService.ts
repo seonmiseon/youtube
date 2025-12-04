@@ -3,7 +3,10 @@ import { ScriptAnalysis } from "../types";
 
 // Get API key from localStorage
 const getApiKey = (): string => {
-  return localStorage.getItem('gemini_api_key') || '';
+  if (typeof window !== 'undefined' && window.localStorage) {
+    return localStorage.getItem('gemini_api_key') || '';
+  }
+  return '';
 };
 
 export const analyzeScript = async (script: string, thumbnailImage: string | null = null): Promise<ScriptAnalysis> => {
