@@ -1,8 +1,16 @@
 export interface ScriptAnalysis {
   hookAnalysis: string;
   structureSummary: string;
+  toneStyle?: string;
+  ctaPattern?: string;
   suggestedTitles: string[];
   suggestedTopics: string[];
+  thumbnailKeywords?: string;
+  seoKeywords?: {
+    large: string;
+    medium: string;
+    small: string;
+  };
 }
 
 export interface AppState {

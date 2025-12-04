@@ -191,13 +191,45 @@ export default function App() {
   const renderStep2 = () => (
     <StepCard title="분석 결과 및 설정" stepNumber={2} description="AI가 분석한 특징을 확인하고 설정을 맞춰주세요.">
       <div className="space-y-8">
-        {/* Analysis Result */}
-        <div className="bg-blue-50 p-6 rounded-xl border border-blue-100">
-          <h3 className="text-blue-800 font-bold text-lg mb-2">💡 AI 분석 리포트</h3>
-          <ul className="list-disc list-inside space-y-2 text-slate-700 text-lg">
-            <li><strong>초반 특징:</strong> {state.analysis?.hookAnalysis}</li>
-            <li><strong>구조 특징:</strong> {state.analysis?.structureSummary}</li>
-          </ul>
+        {/* Detailed Analysis Result */}
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border-2 border-blue-200">
+          <h3 className="text-blue-900 font-bold text-xl mb-4 flex items-center gap-2">
+            <span>💡</span>
+            <span>AI 상세 분석 리포트</span>
+          </h3>
+          
+          <div className="space-y-4">
+            <div className="bg-white p-4 rounded-lg">
+              <p className="font-bold text-slate-800 mb-2">🎯 초반 후킹 전략 (0~30초)</p>
+              <p className="text-slate-700">{state.analysis?.hookAnalysis}</p>
+            </div>
+            
+            <div className="bg-white p-4 rounded-lg">
+              <p className="font-bold text-slate-800 mb-2">🏗️ 전체 구조 분석</p>
+              <p className="text-slate-700">{state.analysis?.structureSummary}</p>
+            </div>
+            
+            {state.analysis?.toneStyle && (
+              <div className="bg-white p-4 rounded-lg">
+                <p className="font-bold text-slate-800 mb-2">🗣️ 말투 및 톤 특징</p>
+                <p className="text-slate-700">{state.analysis.toneStyle}</p>
+              </div>
+            )}
+            
+            {state.analysis?.ctaPattern && (
+              <div className="bg-white p-4 rounded-lg">
+                <p className="font-bold text-slate-800 mb-2">📢 마무리 CTA 패턴</p>
+                <p className="text-slate-700">{state.analysis.ctaPattern}</p>
+              </div>
+            )}
+
+            {state.analysis?.thumbnailKeywords && (
+              <div className="bg-white p-4 rounded-lg">
+                <p className="font-bold text-slate-800 mb-2">🖼️ 썸네일 핵심 키워드</p>
+                <p className="text-slate-700 whitespace-pre-line font-bold text-lg">{state.analysis.thumbnailKeywords}</p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Tone Selection */}
@@ -298,15 +330,15 @@ export default function App() {
           <div className="space-y-3">
             <div className="bg-white p-4 rounded-lg">
               <p className="text-sm font-semibold text-red-700 mb-1">🔴 대형 키워드</p>
-              <p className="text-base text-slate-700">유튜브, 영상, 콘텐츠</p>
+              <p className="text-base text-slate-700">{state.analysis?.seoKeywords?.large || "삼성폰, 갤럭시, 스마트폰, 설정"}</p>
             </div>
             <div className="bg-white p-4 rounded-lg">
               <p className="text-sm font-semibold text-orange-700 mb-1">🟠 중형 키워드</p>
-              <p className="text-base text-slate-700">대본 작성, 스크립트, 영상 제작</p>
+              <p className="text-base text-slate-700">{state.analysis?.seoKeywords?.medium || "안전, 사기, 스미싱, 보안, AI 기능"}</p>
             </div>
             <div className="bg-white p-4 rounded-lg">
               <p className="text-sm font-semibold text-green-700 mb-1">🟢 소형 키워드</p>
-              <p className="text-base text-slate-700">30초 룰, 벤치마킹, 자생</p>
+              <p className="text-base text-slate-700">{state.analysis?.seoKeywords?.small || "통역, 번역, 사진 공유, 파일 전송"}</p>
             </div>
           </div>
         </div>
