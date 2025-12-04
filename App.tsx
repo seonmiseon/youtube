@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { StepCard } from './components/StepCard';
 import { Button } from './components/Button';
 import { AppState, ScriptAnalysis, ToneOption, PRESET_PERSONAS } from './types';
-import { analyzeScript, generateBenchmarkedScript } from './services/geminiService';
+import { analyzeScript, generateBenchmarkedScript, analyzeTitleForSEO } from './services/geminiService';
 
 export default function App() {
   // State Initialization
@@ -28,6 +28,7 @@ export default function App() {
       persona: '',
       generatedScript: '',
       thumbnailImagePrompt: '',
+      customSeoKeywords: null,
       isLoading: false,
       error: null
     };
@@ -385,7 +386,25 @@ export default function App() {
     </StepCard>
   );
 
-  const renderStep3 = () => (
+  const renderStep3 = () => {
+    const handleSaveTitleAndAnalyze = async () => {
+      if (!state.selectedTitle.trim()) {
+        alert('제목을 입력해주세요.');
+        return;
+      }
+      
+      updateState({ isLoading: true });
+      try {
+        const seoResult = await analyzeTitleForSEO(state.selectedTitle);
+        updateState({ customSeoKeywords: seoResult, isLoading: false });
+        alert('제목 분석 완료!');
+      } catch (error) {
+        alert('SEO 분석 실패. 기본 키워드로 진행합니다.');
+        updateState({ isLoading: false });
+      }
+    };
+
+    return (
     <StepCard title="추천 선택" stepNumber={3} description="새로운 대본에 사용할 제목과 주제를 골라주세요.">
       <div className="space-y-8">
         {/* Custom Title Input */}
@@ -400,16 +419,12 @@ export default function App() {
               className="flex-1 px-4 py-3 text-base border-2 border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 transition-colors"
             />
             <button
-              onClick={() => {
-                if (state.selectedTitle) {
-                  alert('제목이 저장되었습니다!');
-                }
-              }}
-              disabled={!state.selectedTitle.trim()}
+              onClick={handleSaveTitleAndAnalyze}
+              disabled={!state.selectedTitle.trim() || state.isLoading}
               className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
             >
               <span>💾</span>
-              <span>저장</span>
+              <span>{state.isLoading ? '분석 중...' : '저장'}</span>
             </button>
           </div>
         </div>
@@ -423,15 +438,15 @@ export default function App() {
           <div className="space-y-3">
             <div className="bg-white p-4 rounded-lg">
               <p className="text-sm font-semibold text-red-700 mb-1">🔴 대형 키워드</p>
-              <p className="text-base text-slate-700">{state.analysis?.seoKeywords?.large || "삼성폰, 갤럭시, 스마트폰, 설정"}</p>
+              <p className="text-base text-slate-700">{state.customSeoKeywords?.large || state.analysis?.seoKeywords?.large || "제목을 입력하고 저장 버튼을 누르세요"}</p>
             </div>
             <div className="bg-white p-4 rounded-lg">
               <p className="text-sm font-semibold text-orange-700 mb-1">🟠 중형 키워드</p>
-              <p className="text-base text-slate-700">{state.analysis?.seoKeywords?.medium || "안전, 사기, 스미싱, 보안, AI 기능"}</p>
+              <p className="text-base text-slate-700">{state.customSeoKeywords?.medium || state.analysis?.seoKeywords?.medium || "제목을 입력하고 저장 버튼을 누르세요"}</p>
             </div>
             <div className="bg-white p-4 rounded-lg">
               <p className="text-sm font-semibold text-green-700 mb-1">🟢 소형 키워드</p>
-              <p className="text-base text-slate-700">{state.analysis?.seoKeywords?.small || "통역, 번역, 사진 공유, 파일 전송"}</p>
+              <p className="text-base text-slate-700">{state.customSeoKeywords?.small || state.analysis?.seoKeywords?.small || "제목을 입력하고 저장 버튼을 누르세요"}</p>
             </div>
           </div>
         </div>
@@ -483,7 +498,8 @@ export default function App() {
         </div>
       </div>
     </StepCard>
-  );
+    );
+  };
 
   const renderStep4 = () => (
     <StepCard title="역할(페르소나) 부여" stepNumber={4} description="대본의 맛을 살려줄 특별한 규칙이나 말투를 정해주세요.">

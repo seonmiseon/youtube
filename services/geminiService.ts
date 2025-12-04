@@ -64,86 +64,18 @@ ${script.substring(0, 3000)}`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-2.0-flash-exp',
-      contents: parts,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            hookAnalysis: { type: Type.STRING },
-            structureSummary: { type: Type.STRING },
-            toneStyle: { type: Type.STRING },
-            ctaPattern: { type: Type.STRING },
-            suggestedTitles: { type: Type.ARRAY, items: { type: Type.STRING } },
-            suggestedTopics: { type: Type.ARRAY, items: { type: Type.STRING } },
-            thumbnailKeywords: { type: Type.STRING },
-            seoKeywords: { 
-              type: Type.OBJECT,
-              properties: {
-                large: { type: Type.STRING },
-                medium: { type: Type.STRING },
-                small: { type: Type.STRING }
-              }
-            },
-            ...(thumbnailImage ? {
-              thumbnailAnalysis: {
-                type: Type.OBJECT,
-                properties: {
-                  colorScheme: { type: Type.STRING },
-                  textLayout: { type: Type.STRING },
-                  visualElements: { type: Type.STRING },
-                  recommendations: { type: Type.STRING }
-                }
-              },
-              coherenceCheck: {
-                type: Type.OBJECT,
-                properties: {
-                  titleThumbnailMatch: { type: Type.STRING },
-                  thumbnailHookMatch: { type: Type.STRING },
-                  overallSynergy: { type: Type.STRING }
-                }
-              }
-            } : {})
-          }
-        }
-      }
+      contents: parts
     });
 
     if (response.text) {
-      return JSON.parse(response.text) as ScriptAnalysis;
+      const cleanedText = response.text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      return JSON.parse(cleanedText) as ScriptAnalysis;
     }
     throw new Error("Empty response from AI");
 
   } catch (error) {
-    console.warn("Gemini API call failed, falling back to simulation.", error);
-    
-    // Fallback Mock Data
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          hookAnalysis: "초반 3초에 '이 설정 켜두면 계좌 털립니다'라는 강력한 위험 경고로 시작. 50세 이상 직접 호명하며 긴급성 강조. 즉시 해결 가능함을 약속.",
-          structureSummary: "문제 제기(1분) → 단계별 해결(5분) → 보너스 팁(2분) 구조. 단문 위주로 빠른 전개. 각 기능마다 '왜 중요한지' 논리 제공.",
-          toneStyle: "친근하지만 정보 중심. '당황하지 마세요' 반복으로 시니어 불안 해소. 전문 용어 최소화하고 화면 기준 설명.",
-          ctaPattern: "영상 말미에 '도움 되셨다면 구독·좋아요', '막히는 부분 댓글 남겨주세요' 친근한 요청. 다음 영상 예고 포함.",
-          suggestedTitles: [
-            "이 설정 켜두면 계좌·카드·비번까지 털립니다! 지금 바로 끄세요",
-            "갤럭시에만 있는 숨겨진 기능 7가지 (50세 이상 필수)",
-            "1초 만에 외국어 실시간 통역하는 방법"
-          ],
-          suggestedTopics: [
-            "스마트폰 위험 설정 5가지",
-            "시니어를 위한 카톡 숨은 기능",
-            "해외여행 필수 스마트폰 설정"
-          ],
-          thumbnailKeywords: "이것 켜두면\n계좌 털립니다",
-          seoKeywords: {
-            large: "삼성폰, 갤럭시, 스마트폰, 설정",
-            medium: "안전, 사기, 스미싱, 보안, AI 기능",
-            small: "통역, 번역, 사진 공유, 파일 전송, 잠금화면"
-          }
-        });
-      }, 1500);
-    });
+    console.error("Gemini API call failed:", error);
+    throw new Error("분석 실패: " + (error instanceof Error ? error.message : "알 수 없는 오류"));
   }
 };
 
@@ -191,56 +123,66 @@ JSON 형식으로 반환:
 {
   "script": "완성된 대본 전체",
   "thumbnailPrompt": "이미지 생성 프롬프트 (텍스트 제외, 시각적 요소만)"
-}`,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            script: { type: Type.STRING },
-            thumbnailPrompt: { type: Type.STRING }
-          }
-        }
-      }
+}`
     });
 
     if (response.text) {
-      return JSON.parse(response.text);
+      const cleanedText = response.text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      return JSON.parse(cleanedText);
     }
     throw new Error("Empty response from AI");
 
   } catch (error) {
-    console.warn("Gemini API call failed, falling back to simulation.", error);
+    console.error("Gemini API call failed:", error);
+    throw new Error("대본 생성 실패: " + (error instanceof Error ? error.message : "알 수 없는 오류"));
+  }
+};
 
-    // Fallback Mock Logic
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const mockScript = `
-# 제목: ${title}
+export const analyzeTitleForSEO = async (title: string): Promise<{
+  large: string;
+  medium: string;
+  small: string;
+}> => {
+  const apiKey = getApiKey();
+  
+  try {
+    if (!apiKey) throw new Error("No API Key");
 
-**(00:00 ~ 00:30) 오프닝 / 훅**
-여러분, 혹시 그런 생각 해보신 적 없으십니까?
-우리가 당연하다고 믿었던 ${topic}에 대한 사실이, 사실은 완전히 거짓말이었다면 말이죠.
-오늘 이야기는 여기서부터 시작합니다. 
+    const ai = new GoogleGenAI({ apiKey });
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.0-flash-exp',
+      contents: `다음 유튜브 제목을 분석하여 SEO 키워드를 추출하세요.
 
-**(00:30 ~ 01:30) 전개 - ${tone}**
-${referenceScript.substring(0, 50)}... 
-(위와 같은 타깃 대본의 호흡을 빌려와서...)
-마치 톱니바퀴가 맞물리듯, 역사는 언제나 예상을 빗나갑니다.
-${persona.includes("국사") ? "실록에 따르면," : "자료를 살펴보면,"} 이 사건은 단순한 우연이 아니었습니다.
+제목: "${title}"
 
-**(마무리)**
-결국 진실은 언제나 우리 곁에 숨쉬고 있었습니다.
-다음 영상에서 더 깊이 파헤쳐보겠습니다. 구독, 잊지 마세요.
-        `;
+**키워드 분류 규칙:**
+- 대형 키워드: 검색량이 가장 많은 일반적인 키워드 (예: 삼성폰, 갤럭시, 스마트폰, 설정)
+- 중형 키워드: 특정 주제/카테고리 관련 키워드 (예: 안전, 사기, 보안, 통역, AI 기능)
+- 소형 키워드: 롱테일 키워드, 구체적인 기능명 (예: 잠금화면, 파일 전송, 실시간 통역, 사진 공유)
 
-        const mockThumbnailPrompt = `노란색 배경, 중앙에 갤럭시 스마트폰 화면 클로즈업, 설정 톱니바퀴 아이콘이 크게 보임, 오른쪽에 빨간색 경고 표시 화살표, 왼쪽 하단에 손가락 터치 아이콘, 전체적으로 밝고 강렬한 색감, 시니어가 쉽게 알아볼 수 있는 UI 화면 강조`;
+각 키워드는 쉼표로 구분하여 4~6개씩 나열하세요.
 
-        resolve({
-          script: mockScript,
-          thumbnailPrompt: mockThumbnailPrompt
-        });
-      }, 2000);
+JSON 형식으로 반환:
+{
+  "large": "키워드1, 키워드2, 키워드3, 키워드4",
+  "medium": "키워드1, 키워드2, 키워드3, 키워드4",
+  "small": "키워드1, 키워드2, 키워드3, 키워드4"
+}`
     });
+
+    if (response.text) {
+      const cleanedText = response.text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      return JSON.parse(cleanedText);
+    }
+    throw new Error("Empty response from AI");
+
+  } catch (error) {
+    console.error("SEO analysis failed:", error);
+    // Fallback
+    return {
+      large: "유튜브, 영상, 콘텐츠, 정보",
+      medium: "제작, 편집, 기획, 마케팅",
+      small: "썸네일, 대본, SEO, 조회수"
+    };
   }
 };

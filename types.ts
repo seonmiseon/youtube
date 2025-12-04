@@ -36,6 +36,11 @@ export interface AppState {
   persona: string;
   generatedScript: string;
   thumbnailImagePrompt: string;
+  customSeoKeywords: {
+    large: string;
+    medium: string;
+    small: string;
+  } | null;
   isLoading: boolean;
   error: string | null;
 }
