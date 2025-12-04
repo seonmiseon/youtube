@@ -252,7 +252,10 @@ export default function App() {
           />
         </div>
 
-        <Button fullWidth onClick={() => updateState({ step: 3 })}>다음 단계로 이동 👉</Button>
+        <div className="flex gap-4 pt-4">
+          <Button variant="secondary" onClick={() => updateState({ step: 1 })}>이전</Button>
+          <Button fullWidth onClick={() => updateState({ step: 3 })}>다음 단계로 이동 👉</Button>
+        </div>
       </div>
     </StepCard>
   );
@@ -301,8 +304,8 @@ export default function App() {
         </div>
 
         <div className="flex gap-4 pt-4">
-           <Button variant="secondary" onClick={() => updateState({ step: 2 })}>이전</Button>
-           <Button fullWidth disabled={!state.selectedTitle || !state.selectedTopic} onClick={() => updateState({ step: 4 })}>다음: 역할 부여 👉</Button>
+          <Button variant="secondary" onClick={() => updateState({ step: 2 })}>이전</Button>
+          <Button fullWidth disabled={!state.selectedTitle || !state.selectedTopic} onClick={() => updateState({ step: 4 })}>다음: 역할 부여 👉</Button>
         </div>
       </div>
     </StepCard>
@@ -341,8 +344,8 @@ export default function App() {
         </div>
 
         <div className="flex gap-4 pt-4">
-           <Button variant="secondary" onClick={() => updateState({ step: 3 })}>이전</Button>
-           <Button fullWidth onClick={handleGenerate}>✨ 대본 생성 시작</Button>
+          <Button variant="secondary" onClick={() => updateState({ step: 3 })}>이전</Button>
+          <Button fullWidth onClick={handleGenerate}>✨ 대본 생성 시작</Button>
         </div>
       </div>
     </StepCard>
