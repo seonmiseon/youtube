@@ -1,21 +1,22 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { ScriptAnalysis } from "../types";
 
-// Initialize Gemini
-// Note: In a real environment, ensure process.env.API_KEY is set.
-// This implementation includes a robust mock fallback if the API key is missing or fails,
-// satisfying the user's request for a "Simulated" backend-less experience while validly implementing the API.
-const apiKey = process.env.API_KEY || ''; 
-const ai = new GoogleGenAI({ apiKey });
+// Get API key from localStorage
+const getApiKey = (): string => {
+  return localStorage.getItem('gemini_api_key') || '';
+};
 
 export const analyzeScript = async (script: string): Promise<ScriptAnalysis> => {
   if (!script || script.length < 10) {
     throw new Error("분석할 텍스트가 너무 짧습니다.");
   }
 
+  const apiKey = getApiKey();
+  
   try {
     if (!apiKey) throw new Error("No API Key");
 
+    const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: `Analyze the following YouTube script structure. Return JSON with these fields:
@@ -79,9 +80,12 @@ export const generateBenchmarkedScript = async (
   persona: string
 ): Promise<string> => {
   
+  const apiKey = getApiKey();
+  
   try {
     if (!apiKey) throw new Error("No API Key");
 
+    const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: `Write a YouTube script.

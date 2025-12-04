@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StepCard } from './components/StepCard';
 import { Button } from './components/Button';
+import { ApiKeyModal } from './components/ApiKeyModal';
 import { AppState, ScriptAnalysis, ToneOption, PRESET_PERSONAS } from './types';
 import { analyzeScript, generateBenchmarkedScript } from './services/geminiService';
 
@@ -37,6 +38,21 @@ export default function App() {
   }, [state]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
+  const [hasApiKey, setHasApiKey] = useState(false);
+
+  // Check API key on mount and modal close
+  useEffect(() => {
+    const checkApiKey = () => {
+      const key = localStorage.getItem('gemini_api_key');
+      setHasApiKey(!!key);
+    };
+    checkApiKey();
+    
+    // Recheck when modal might have closed
+    const interval = setInterval(checkApiKey, 1000);
+    return () => clearInterval(interval);
+  }, [isApiKeyModalOpen]);
 
   // Helper to update state
   const updateState = (updates: Partial<AppState>) => {
@@ -57,6 +73,13 @@ export default function App() {
 
   const handleAnalyze = async () => {
     if (!state.inputScript.trim()) return;
+    
+    // Check API key before analysis
+    if (!hasApiKey) {
+      setIsApiKeyModalOpen(true);
+      return;
+    }
+    
     updateState({ isLoading: true, error: null });
     
     try {
@@ -75,6 +98,12 @@ export default function App() {
   };
 
   const handleGenerate = async () => {
+    // Check API key before generation
+    if (!hasApiKey) {
+      setIsApiKeyModalOpen(true);
+      return;
+    }
+    
     updateState({ isLoading: true, step: 5, error: null });
     try {
       const tonePrompt = state.selectedTone === '1' ? ToneOption.BENCHMARK : 
@@ -341,11 +370,26 @@ export default function App() {
     <div className="min-h-screen bg-slate-50 py-8 px-4 font-sans">
       <header className="max-w-2xl mx-auto mb-10 flex flex-col gap-4">
         {/* Producer Badge - Block element to avoid overlap */}
-        <div className="flex items-center gap-2 opacity-90 hover:opacity-100 transition-opacity cursor-default self-start">
-          <div className="w-8 h-6 bg-red-600 rounded-lg flex items-center justify-center shadow-sm">
-            <div className="w-0 h-0 border-t-[5px] border-t-transparent border-l-[8px] border-l-white border-b-[5px] border-b-transparent ml-1"></div>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 opacity-90 hover:opacity-100 transition-opacity cursor-default">
+            <div className="w-8 h-6 bg-red-600 rounded-lg flex items-center justify-center shadow-sm">
+              <div className="w-0 h-0 border-t-[5px] border-t-transparent border-l-[8px] border-l-white border-b-[5px] border-b-transparent ml-1"></div>
+            </div>
+            <span className="font-black text-slate-800 text-lg tracking-tight">제작: 클로이</span>
           </div>
-          <span className="font-black text-slate-800 text-lg tracking-tight">제작: 클로이</span>
+          
+          {/* API Key Settings Button */}
+          <button
+            onClick={() => setIsApiKeyModalOpen(true)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+              hasApiKey 
+                ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+                : 'bg-amber-100 text-amber-700 hover:bg-amber-200 animate-pulse'
+            }`}
+          >
+            <span className="text-lg">⚙️</span>
+            <span className="text-sm">{hasApiKey ? 'API 키 설정됨' : 'API 키 필요'}</span>
+          </button>
         </div>
         
         {/* Main Title - Centered block */}
@@ -358,6 +402,11 @@ export default function App() {
           </p>
         </div>
       </header>
+
+      <ApiKeyModal 
+        isOpen={isApiKeyModalOpen} 
+        onClose={() => setIsApiKeyModalOpen(false)} 
+      />
 
       <main className="pb-20">
         {state.step === 1 && renderStep1()}
