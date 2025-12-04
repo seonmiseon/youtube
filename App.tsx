@@ -19,6 +19,7 @@ export default function App() {
     return {
       step: 1,
       inputScript: '',
+      thumbnailImage: null,
       analysis: null,
       selectedTone: '1',
       targetLength: 5,
@@ -26,6 +27,7 @@ export default function App() {
       selectedTopic: '',
       persona: '',
       generatedScript: '',
+      thumbnailImagePrompt: '',
       isLoading: false,
       error: null
     };
@@ -37,6 +39,7 @@ export default function App() {
   }, [state]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const [hasApiKey, setHasApiKey] = useState(false);
 
   // Check API key on mount
@@ -69,6 +72,19 @@ export default function App() {
     }
   };
 
+  const handleThumbnailUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        updateState({ thumbnailImage: ev.target?.result as string });
+      };
+      reader.readAsDataURL(file);
+    } else {
+      alert('이미지 파일만 업로드 가능합니다.');
+    }
+  };
+
   const handleAnalyze = async () => {
     if (!state.inputScript.trim()) return;
     
@@ -81,7 +97,7 @@ export default function App() {
     updateState({ isLoading: true, error: null });
     
     try {
-      const result = await analyzeScript(state.inputScript);
+      const result = await analyzeScript(state.inputScript, state.thumbnailImage);
       updateState({ 
         analysis: result, 
         step: 2, 
@@ -108,7 +124,7 @@ export default function App() {
                          state.selectedTone === '2' ? ToneOption.LOGICAL : 
                          ToneOption.CUSTOM;
                          
-      const script = await generateBenchmarkedScript(
+      const result = await generateBenchmarkedScript(
         state.inputScript,
         state.selectedTitle,
         state.selectedTopic,
@@ -116,7 +132,11 @@ export default function App() {
         state.targetLength,
         state.persona
       );
-      updateState({ generatedScript: script, isLoading: false });
+      updateState({ 
+        generatedScript: result.script, 
+        thumbnailImagePrompt: result.thumbnailPrompt,
+        isLoading: false 
+      });
     } catch (err) {
       updateState({ 
         error: "대본 생성에 실패했습니다.", 
@@ -155,34 +175,76 @@ export default function App() {
   // Render Steps
   const renderStep1 = () => (
     <StepCard title="타깃 대본 입력" stepNumber={1} description="벤치마킹할 영상을 텍스트로 넣어주세요.">
-      <div className="space-y-4">
-        <textarea
-          className="w-full h-64 p-4 text-lg border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none resize-none transition-all placeholder:text-slate-400"
-          placeholder="여기에 대본 내용을 붙여넣으세요..."
-          value={state.inputScript}
-          onChange={(e) => updateState({ inputScript: e.target.value })}
-        />
-        <div className="flex gap-4">
-           <input 
+      <div className="space-y-6">
+        {/* Script Input */}
+        <div className="space-y-3">
+          <h3 className="text-lg font-bold text-slate-900">📝 대본 입력</h3>
+          <textarea
+            className="w-full h-64 p-4 text-lg border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none resize-none transition-all placeholder:text-slate-400"
+            placeholder="여기에 대본 내용을 붙여넣으세요..."
+            value={state.inputScript}
+            onChange={(e) => updateState({ inputScript: e.target.value })}
+          />
+          <input 
             type="file" 
             accept=".txt" 
             ref={fileInputRef} 
             onChange={handleFileUpload} 
             className="hidden" 
           />
-          <Button variant="secondary" onClick={() => fileInputRef.current?.click()} className="flex-1">
+          <Button variant="secondary" onClick={() => fileInputRef.current?.click()} fullWidth>
             📂 파일 불러오기 (.txt)
           </Button>
+        </div>
+
+        {/* Thumbnail Upload */}
+        <div className="space-y-3">
+          <h3 className="text-lg font-bold text-slate-900">🖼️ 타깃 썸네일 이미지 (선택)</h3>
+          <p className="text-sm text-slate-600">썸네일을 업로드하면 제목-썸네일-도입부(0~30초)의 연계성을 분석합니다.</p>
+          
+          {state.thumbnailImage && (
+            <div className="relative">
+              <img 
+                src={state.thumbnailImage} 
+                alt="Thumbnail preview" 
+                className="w-full max-w-md rounded-lg border-2 border-blue-300 shadow-md"
+              />
+              <button
+                onClick={() => updateState({ thumbnailImage: null })}
+                className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+          
+          <input 
+            type="file" 
+            accept="image/*" 
+            ref={thumbnailInputRef} 
+            onChange={handleThumbnailUpload} 
+            className="hidden" 
+          />
           <Button 
-            fullWidth 
-            className="flex-1"
-            variant="danger"
-            disabled={state.inputScript.length < 10 || state.isLoading}
-            onClick={handleAnalyze}
+            variant="secondary" 
+            onClick={() => thumbnailInputRef.current?.click()} 
+            fullWidth
+            className="bg-purple-100 hover:bg-purple-200 text-purple-800 border-2 border-purple-300"
           >
-            {state.isLoading ? '분석 중...' : '🔍 대본구조분석하기'}
+            🎨 썸네일 이미지 업로드 (jpg, png)
           </Button>
         </div>
+
+        {/* Analyze Button */}
+        <Button 
+          fullWidth 
+          variant="danger"
+          disabled={state.inputScript.length < 10 || state.isLoading}
+          onClick={handleAnalyze}
+          className="py-4 text-xl"
+        >
+          {state.isLoading ? '🔄 분석 중...' : '🔍 대본+썸네일 통합 분석하기'}
+        </Button>
         {state.error && <p className="text-red-500 font-bold text-center">{state.error}</p>}
       </div>
     </StepCard>
@@ -227,6 +289,37 @@ export default function App() {
               <div className="bg-white p-4 rounded-lg">
                 <p className="font-bold text-slate-800 mb-2">🖼️ 썸네일 핵심 키워드</p>
                 <p className="text-slate-700 whitespace-pre-line font-bold text-lg">{state.analysis.thumbnailKeywords}</p>
+              </div>
+            )}
+
+            {/* Thumbnail Analysis - NEW */}
+            {state.analysis?.thumbnailAnalysis && (
+              <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-5 rounded-lg border-2 border-yellow-300">
+                <p className="font-bold text-orange-900 mb-3 text-lg flex items-center gap-2">
+                  <span>🎨</span>
+                  <span>썸네일 이미지 분석</span>
+                </p>
+                <div className="space-y-2 text-sm">
+                  <p><strong>색상 구성:</strong> {state.analysis.thumbnailAnalysis.colorScheme}</p>
+                  <p><strong>텍스트 배치:</strong> {state.analysis.thumbnailAnalysis.textLayout}</p>
+                  <p><strong>시각적 요소:</strong> {state.analysis.thumbnailAnalysis.visualElements}</p>
+                  <p><strong>개선 권장사항:</strong> {state.analysis.thumbnailAnalysis.recommendations}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Coherence Check - NEW */}
+            {state.analysis?.coherenceCheck && (
+              <div className="bg-gradient-to-br from-green-50 to-teal-50 p-5 rounded-lg border-2 border-green-300">
+                <p className="font-bold text-green-900 mb-3 text-lg flex items-center gap-2">
+                  <span>🎯</span>
+                  <span>제목-썸네일-도입부 연계성 분석</span>
+                </p>
+                <div className="space-y-2 text-sm">
+                  <p><strong>제목 ↔ 썸네일:</strong> {state.analysis.coherenceCheck.titleThumbnailMatch}</p>
+                  <p><strong>썸네일 ↔ 도입부(0~30초):</strong> {state.analysis.coherenceCheck.thumbnailHookMatch}</p>
+                  <p><strong>전체 시너지:</strong> {state.analysis.coherenceCheck.overallSynergy}</p>
+                </div>
               </div>
             )}
           </div>
@@ -446,13 +539,42 @@ export default function App() {
     return (
       <StepCard title="생성 완료!" stepNumber={5} description="완성된 대본을 확인하고 다운로드하세요.">
         <div className="space-y-6">
-          <div className="bg-slate-900 text-white p-6 rounded-xl h-96 overflow-y-auto font-mono text-base leading-relaxed whitespace-pre-wrap shadow-inner">
-            {state.generatedScript}
+          {/* Generated Script */}
+          <div>
+            <h3 className="text-lg font-bold text-slate-900 mb-3">📝 생성된 대본</h3>
+            <div className="bg-slate-900 text-white p-6 rounded-xl h-96 overflow-y-auto font-mono text-base leading-relaxed whitespace-pre-wrap shadow-inner">
+              {state.generatedScript}
+            </div>
           </div>
+
+          {/* Thumbnail Image Prompt */}
+          {state.thumbnailImagePrompt && (
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 mb-3">🎨 썸네일 이미지 생성 프롬프트</h3>
+              <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-5 rounded-xl border-2 border-purple-300">
+                <p className="text-slate-800 text-base leading-relaxed mb-3">{state.thumbnailImagePrompt}</p>
+                <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-300">
+                  <p className="text-sm text-yellow-800">
+                    💡 <strong>사용 방법:</strong> 이 프롬프트를 복사해서 DALL-E, Midjourney, Stable Diffusion 등 AI 이미지 생성 도구에 입력하세요. 
+                    생성된 이미지에 미리캔버스에서 텍스트를 추가하면 완성!
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(state.thumbnailImagePrompt);
+                    alert('프롬프트가 클립보드에 복사되었습니다!');
+                  }}
+                  className="mt-3 w-full py-2 px-4 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  📋 프롬프트 복사하기
+                </button>
+              </div>
+            </div>
+          )}
           
           <div className="flex flex-col gap-3">
              <Button fullWidth onClick={handleDownload} className="bg-green-600 hover:bg-green-700 shadow-green-200">
-               📥 텍스트 파일(.txt) 다운로드
+               📥 대본 텍스트 파일(.txt) 다운로드
              </Button>
              <Button variant="outline" onClick={handleReset} fullWidth>
                🔄 처음부터 다시 만들기

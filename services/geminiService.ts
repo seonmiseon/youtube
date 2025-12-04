@@ -6,7 +6,7 @@ const getApiKey = (): string => {
   return localStorage.getItem('gemini_api_key') || '';
 };
 
-export const analyzeScript = async (script: string): Promise<ScriptAnalysis> => {
+export const analyzeScript = async (script: string, thumbnailImage: string | null = null): Promise<ScriptAnalysis> => {
   if (!script || script.length < 10) {
     throw new Error("분석할 텍스트가 너무 짧습니다.");
   }
@@ -17,9 +17,8 @@ export const analyzeScript = async (script: string): Promise<ScriptAnalysis> => 
     if (!apiKey) throw new Error("No API Key");
 
     const ai = new GoogleGenAI({ apiKey });
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: `다음 유튜브 대본을 분석하고, 시니어정보탐정 스타일에 맞춰 상세한 분석 결과를 JSON 형식으로 반환하세요.
+    
+    let analysisPrompt = `다음 유튜브 대본을 분석하고, 시니어정보탐정 스타일에 맞춰 상세한 분석 결과를 JSON 형식으로 반환하세요.
 
 분석 항목:
 1. hookAnalysis: 초반 0~30초의 후킹 전략 분석 (어떤 위험/이득을 제시했는지, 시청자 호명 방식, 긴급성 표현 등 구체적으로)
@@ -32,9 +31,40 @@ export const analyzeScript = async (script: string): Promise<ScriptAnalysis> => 
 8. seoKeywords: 대형/중형/소형 SEO 키워드 리스트
 
 대본:
-${script.substring(0, 3000)}
+${script.substring(0, 3000)}`;
 
-모든 답변은 한국어로 작성하고, 구체적이고 실용적으로 분석하세요.`,
+    if (thumbnailImage) {
+      analysisPrompt += `
+
+**썸네일 이미지 분석 추가 요청:**
+업로드된 썸네일 이미지를 분석하여 다음 정보를 추가로 제공하세요:
+- thumbnailAnalysis: 색상 구성, 텍스트 배치, 시각적 요소, 개선 권장사항
+- coherenceCheck: 제목-썸네일-도입부(0~30초) 간의 연계성 및 시너지 분석
+
+썸네일 분석 시 시니어정보탐정 스타일(노랑 배경+검정 글씨, 빨강 포인트, 4~6단어, 2줄 구성)을 기준으로 평가하세요.`;
+    }
+
+    analysisPrompt += `
+
+모든 답변은 한국어로 작성하고, 구체적이고 실용적으로 분석하세요.`;
+
+    const parts: any[] = [{ text: analysisPrompt }];
+    
+    if (thumbnailImage) {
+      // Base64 이미지를 Gemini에 전달
+      const base64Data = thumbnailImage.split(',')[1];
+      const mimeType = thumbnailImage.split(':')[1].split(';')[0];
+      parts.push({
+        inlineData: {
+          mimeType: mimeType,
+          data: base64Data
+        }
+      });
+    }
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.0-flash-exp',
+      contents: parts,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -54,7 +84,26 @@ ${script.substring(0, 3000)}
                 medium: { type: Type.STRING },
                 small: { type: Type.STRING }
               }
-            }
+            },
+            ...(thumbnailImage ? {
+              thumbnailAnalysis: {
+                type: Type.OBJECT,
+                properties: {
+                  colorScheme: { type: Type.STRING },
+                  textLayout: { type: Type.STRING },
+                  visualElements: { type: Type.STRING },
+                  recommendations: { type: Type.STRING }
+                }
+              },
+              coherenceCheck: {
+                type: Type.OBJECT,
+                properties: {
+                  titleThumbnailMatch: { type: Type.STRING },
+                  thumbnailHookMatch: { type: Type.STRING },
+                  overallSynergy: { type: Type.STRING }
+                }
+              }
+            } : {})
           }
         }
       }
@@ -105,7 +154,7 @@ export const generateBenchmarkedScript = async (
   tone: string,
   lengthMin: number,
   persona: string
-): Promise<string> => {
+): Promise<{ script: string; thumbnailPrompt: string }> => {
   
   const apiKey = getApiKey();
   
@@ -114,38 +163,62 @@ export const generateBenchmarkedScript = async (
 
     const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: `Write a YouTube script.
-      Topic: ${topic}
-      Title: ${title}
-      Target Length: ${lengthMin} minutes.
-      Tone/Style: ${tone}.
-      Persona/Rules: ${persona}.
-      
-      CRITICAL INSTRUCTION: Benchmark the sentence structure, pacing, and hook style of the following REFERENCE SCRIPT, but write about the NEW TOPIC.
-      
-      Reference Script (for structure only):
-      ${referenceScript.substring(0, 1000)}...
-      
-      Output Rules:
-      1. [0-30s]: Strong hook matching the reference's emotion.
-      2. High visual imagery.
-      3. Use Markdown formatting.`,
+      model: 'gemini-2.0-flash-exp',
+      contents: `YouTube 대본과 썸네일 이미지 프롬프트를 생성하세요.
+
+주제: ${topic}
+제목: ${title}
+목표 길이: ${lengthMin}분
+톤/스타일: ${tone}
+페르소나/규칙: ${persona}
+
+**대본 작성 규칙:**
+- 타깃 대본의 문장 구조, 속도, 후킹 스타일을 벤치마킹하되, 새로운 주제로 작성
+- [0-30초]: 강력한 후킹 (위험 경고 또는 즉시 해결 제시)
+- 시니어정보탐정 스타일 준수 (친근하지만 정보 중심, 단문 위주, "당황하지 마세요" 같은 안심 문구)
+- 문제 제기 → 단계별 해결 → 보너스 팁 구조
+
+**썸네일 이미지 프롬프트 작성 규칙:**
+- 텍스트는 제외 (미리캔버스에서 별도 추가 예정)
+- 시각적 요소만 설명 (스마트폰 화면, UI, 손가락 아이콘, 화살표 등)
+- 색상 배경 지정 (노랑, 빨강, 초록 등)
+- 구체적인 이미지 요소 설명 (예: "갤럭시 스마트폰 설정 화면, 톱니바퀴 아이콘 확대, 빨간 경고 표시")
+
+타깃 대본 (구조 참고용):
+${referenceScript.substring(0, 1500)}
+
+JSON 형식으로 반환:
+{
+  "script": "완성된 대본 전체",
+  "thumbnailPrompt": "이미지 생성 프롬프트 (텍스트 제외, 시각적 요소만)"
+}`,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            script: { type: Type.STRING },
+            thumbnailPrompt: { type: Type.STRING }
+          }
+        }
+      }
     });
 
-    return response.text || "생성 실패";
+    if (response.text) {
+      return JSON.parse(response.text);
+    }
+    throw new Error("Empty response from AI");
 
   } catch (error) {
     console.warn("Gemini API call failed, falling back to simulation.", error);
 
-    // Fallback Mock Logic as requested
+    // Fallback Mock Logic
     return new Promise((resolve) => {
       setTimeout(() => {
         const mockScript = `
 # 제목: ${title}
 
 **(00:00 ~ 00:30) 오프닝 / 훅**
-(검은 화면에서 핀 조명이 하나 켜지듯)
 여러분, 혹시 그런 생각 해보신 적 없으십니까?
 우리가 당연하다고 믿었던 ${topic}에 대한 사실이, 사실은 완전히 거짓말이었다면 말이죠.
 오늘 이야기는 여기서부터 시작합니다. 
@@ -155,17 +228,18 @@ ${referenceScript.substring(0, 50)}...
 (위와 같은 타깃 대본의 호흡을 빌려와서...)
 마치 톱니바퀴가 맞물리듯, 역사는 언제나 예상을 빗나갑니다.
 ${persona.includes("국사") ? "실록에 따르면," : "자료를 살펴보면,"} 이 사건은 단순한 우연이 아니었습니다.
-눈 앞에 펼쳐지는 광경을 상상해보세요. 거친 모래바람, 그리고 들려오는 함성 소리.
-
-**(01:30 ~ 02:30) 심화**
-그렇다면 우리는 무엇을 놓치고 있었을까요?
-핵심은 바로 '관점'의 차이였습니다.
 
 **(마무리)**
 결국 진실은 언제나 우리 곁에 숨쉬고 있었습니다.
 다음 영상에서 더 깊이 파헤쳐보겠습니다. 구독, 잊지 마세요.
         `;
-        resolve(mockScript);
+
+        const mockThumbnailPrompt = `노란색 배경, 중앙에 갤럭시 스마트폰 화면 클로즈업, 설정 톱니바퀴 아이콘이 크게 보임, 오른쪽에 빨간색 경고 표시 화살표, 왼쪽 하단에 손가락 터치 아이콘, 전체적으로 밝고 강렬한 색감, 시니어가 쉽게 알아볼 수 있는 UI 화면 강조`;
+
+        resolve({
+          script: mockScript,
+          thumbnailPrompt: mockThumbnailPrompt
+        });
       }, 2000);
     });
   }

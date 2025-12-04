@@ -11,11 +11,23 @@ export interface ScriptAnalysis {
     medium: string;
     small: string;
   };
+  thumbnailAnalysis?: {
+    colorScheme: string;
+    textLayout: string;
+    visualElements: string;
+    recommendations: string;
+  };
+  coherenceCheck?: {
+    titleThumbnailMatch: string;
+    thumbnailHookMatch: string;
+    overallSynergy: string;
+  };
 }
 
 export interface AppState {
   step: number;
   inputScript: string;
+  thumbnailImage: string | null;
   analysis: ScriptAnalysis | null;
   selectedTone: string;
   targetLength: number;
@@ -23,6 +35,7 @@ export interface AppState {
   selectedTopic: string;
   persona: string;
   generatedScript: string;
+  thumbnailImagePrompt: string;
   isLoading: boolean;
   error: string | null;
 }
