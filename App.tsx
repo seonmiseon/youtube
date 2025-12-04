@@ -222,6 +222,21 @@ export default function App() {
               </label>
             ))}
           </div>
+          
+          {/* Custom Tone Input */}
+          {state.selectedTone === '3' && (
+            <div className="mt-4 p-4 bg-slate-50 rounded-xl border-2 border-blue-300">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                커스텀 톤앤매너 입력
+              </label>
+              <textarea
+                value={state.persona}
+                onChange={(e) => updateState({ persona: e.target.value })}
+                placeholder="예: 야담말투로 구어체를 사용해줘 (~했습니다 다음에 ~했지요, 현대어 금지)"
+                className="w-full h-24 p-3 text-base border-2 border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 resize-none"
+              />
+            </div>
+          )}
         </div>
 
         {/* Length Input */}
