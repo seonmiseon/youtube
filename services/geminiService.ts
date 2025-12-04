@@ -65,9 +65,9 @@ ${script.substring(0, 3000)}`;
       });
     }
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
-      contents: parts
+    const model = ai.models.get('gemini-2.0-flash-exp');
+    const response = await model.generateContent({
+      contents: [{ role: 'user', parts }]
     });
 
     if (response.text) {
@@ -97,9 +97,9 @@ export const generateBenchmarkedScript = async (
     if (!apiKey) throw new Error("No API Key");
 
     const ai = new GoogleGenAI({ apiKey });
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
-      contents: `YouTube 대본과 썸네일 이미지 프롬프트를 생성하세요.
+    const model = ai.models.get('gemini-2.0-flash-exp');
+    const response = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: `YouTube 대본과 썸네일 이미지 프롬프트를 생성하세요.
 
 주제: ${topic}
 제목: ${title}
@@ -126,7 +126,7 @@ JSON 형식으로 반환:
 {
   "script": "완성된 대본 전체",
   "thumbnailPrompt": "이미지 생성 프롬프트 (텍스트 제외, 시각적 요소만)"
-}`
+}` }] }]
     });
 
     if (response.text) {
@@ -152,9 +152,9 @@ export const analyzeTitleForSEO = async (title: string): Promise<{
     if (!apiKey) throw new Error("No API Key");
 
     const ai = new GoogleGenAI({ apiKey });
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
-      contents: `다음 유튜브 제목을 분석하여 SEO 키워드를 추출하세요.
+    const model = ai.models.get('gemini-2.0-flash-exp');
+    const response = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: `다음 유튜브 제목을 분석하여 SEO 키워드를 추출하세요.
 
 제목: "${title}"
 
@@ -170,7 +170,7 @@ JSON 형식으로 반환:
   "large": "키워드1, 키워드2, 키워드3, 키워드4",
   "medium": "키워드1, 키워드2, 키워드3, 키워드4",
   "small": "키워드1, 키워드2, 키워드3, 키워드4"
-}`
+}` }] }]
     });
 
     if (response.text) {
