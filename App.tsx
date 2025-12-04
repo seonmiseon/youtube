@@ -402,12 +402,19 @@ export default function App() {
               placeholder="Gemini API v3 키를 입력하세요"
               className="flex-1 px-4 py-3 text-base border-2 border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 transition-colors"
             />
-            {hasApiKey && (
-              <div className="flex items-center gap-2 px-4 py-3 bg-green-50 text-green-700 rounded-lg border-2 border-green-200">
-                <span className="text-lg">✓</span>
-                <span className="font-medium">저장됨</span>
-              </div>
-            )}
+            <button
+              onClick={() => {
+                const key = localStorage.getItem('gemini_api_key');
+                if (key) {
+                  alert('API 키가 저장되었습니다!');
+                }
+              }}
+              disabled={!localStorage.getItem('gemini_api_key')}
+              className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+            >
+              <span>💾</span>
+              <span>저장</span>
+            </button>
           </div>
           {!hasApiKey && (
             <p className="text-sm text-slate-500 mt-2">
