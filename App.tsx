@@ -263,7 +263,55 @@ export default function App() {
   const renderStep3 = () => (
     <StepCard title="추천 선택" stepNumber={3} description="새로운 대본에 사용할 제목과 주제를 골라주세요.">
       <div className="space-y-8">
-        {/* Title Selection */}
+        {/* Custom Title Input */}
+        <div className="space-y-3">
+          <h3 className="text-lg font-bold text-slate-900">타깃 제목</h3>
+          <div className="flex gap-3">
+            <input
+              type="text"
+              value={state.selectedTitle}
+              onChange={(e) => updateState({ selectedTitle: e.target.value })}
+              placeholder="제목을 직접 입력하세요"
+              className="flex-1 px-4 py-3 text-base border-2 border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 transition-colors"
+            />
+            <button
+              onClick={() => {
+                if (state.selectedTitle) {
+                  alert('제목이 저장되었습니다!');
+                }
+              }}
+              disabled={!state.selectedTitle.trim()}
+              className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+            >
+              <span>💾</span>
+              <span>저장</span>
+            </button>
+          </div>
+        </div>
+
+        {/* SEO Keywords Analysis */}
+        <div className="bg-gradient-to-br from-purple-50 to-blue-50 p-6 rounded-xl border-2 border-purple-200">
+          <h3 className="text-lg font-bold text-purple-900 mb-4 flex items-center gap-2">
+            <span>🔍</span>
+            <span>SEO 키워드 분석</span>
+          </h3>
+          <div className="space-y-3">
+            <div className="bg-white p-4 rounded-lg">
+              <p className="text-sm font-semibold text-red-700 mb-1">🔴 대형 키워드</p>
+              <p className="text-base text-slate-700">유튜브, 영상, 콘텐츠</p>
+            </div>
+            <div className="bg-white p-4 rounded-lg">
+              <p className="text-sm font-semibold text-orange-700 mb-1">🟠 중형 키워드</p>
+              <p className="text-base text-slate-700">대본 작성, 스크립트, 영상 제작</p>
+            </div>
+            <div className="bg-white p-4 rounded-lg">
+              <p className="text-sm font-semibold text-green-700 mb-1">🟢 소형 키워드</p>
+              <p className="text-base text-slate-700">30초 룰, 벤치마킹, 자생</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Title Recommendations */}
         <div className="space-y-3">
           <h3 className="text-lg font-bold text-slate-900">추천 제목 (SEO 최적화)</h3>
           <div className="grid gap-3">
@@ -277,6 +325,7 @@ export default function App() {
                     : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-white hover:border-slate-300'
                 }`}
               >
+                <span className="font-bold text-blue-600 mr-2">{idx + 1}순위</span>
                 {title}
               </button>
             ))}
