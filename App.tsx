@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StepCard } from './components/StepCard';
 import { Button } from './components/Button';
-import { ApiKeyModal } from './components/ApiKeyModal';
 import { AppState, ScriptAnalysis, ToneOption, PRESET_PERSONAS } from './types';
 import { analyzeScript, generateBenchmarkedScript } from './services/geminiService';
 
@@ -38,10 +37,9 @@ export default function App() {
   }, [state]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
   const [hasApiKey, setHasApiKey] = useState(false);
 
-  // Check API key on mount and modal close
+  // Check API key on mount
   useEffect(() => {
     const checkApiKey = () => {
       const key = localStorage.getItem('gemini_api_key');
@@ -49,10 +47,10 @@ export default function App() {
     };
     checkApiKey();
     
-    // Recheck when modal might have closed
+    // Recheck periodically
     const interval = setInterval(checkApiKey, 1000);
     return () => clearInterval(interval);
-  }, [isApiKeyModalOpen]);
+  }, []);
 
   // Helper to update state
   const updateState = (updates: Partial<AppState>) => {
@@ -76,7 +74,7 @@ export default function App() {
     
     // Check API key before analysis
     if (!hasApiKey) {
-      setIsApiKeyModalOpen(true);
+      alert('Gemini API 키를 먼저 입력해주세요.');
       return;
     }
     
@@ -100,7 +98,7 @@ export default function App() {
   const handleGenerate = async () => {
     // Check API key before generation
     if (!hasApiKey) {
-      setIsApiKeyModalOpen(true);
+      alert('Gemini API 키를 먼저 입력해주세요.');
       return;
     }
     
@@ -377,7 +375,7 @@ export default function App() {
           <span className="font-black text-slate-800 text-lg tracking-tight">제작: 클로이</span>
         </div>
         
-        {/* Main Title - Centered block */}
+        {/* Main Title */}
         <div className="text-center">
           <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-2 tracking-tight">
             자생's 30초룰 <span className="text-blue-600">대본 생성기</span>
@@ -387,29 +385,37 @@ export default function App() {
           </p>
         </div>
 
-        {/* API Key Settings Button - Large and Prominent */}
-        <button
-          onClick={() => setIsApiKeyModalOpen(true)}
-          className={`w-full py-4 px-6 rounded-xl font-bold text-lg transition-all shadow-md hover:shadow-lg ${
-            hasApiKey 
-              ? 'bg-green-100 text-green-700 hover:bg-green-200 border-2 border-green-300' 
-              : 'bg-amber-100 text-amber-800 hover:bg-amber-200 border-2 border-amber-400 animate-pulse'
-          }`}
-        >
-          <div className="flex items-center justify-center gap-3">
+        {/* API Key Input - Always Visible */}
+        <div className="bg-white rounded-xl shadow-md p-5 border-2 border-slate-200">
+          <div className="flex items-center gap-3 mb-3">
             <span className="text-2xl">🔑</span>
-            <span>{hasApiKey ? 'Gemini API 키 설정됨' : 'Gemini API 키 설정'}</span>
+            <h3 className="text-lg font-bold text-slate-800">Gemini API Key 설정</h3>
+          </div>
+          <div className="flex gap-3">
+            <input
+              type="text"
+              value={localStorage.getItem('gemini_api_key') || ''}
+              onChange={(e) => {
+                localStorage.setItem('gemini_api_key', e.target.value);
+                setHasApiKey(!!e.target.value);
+              }}
+              placeholder="Gemini API v3 키를 입력하세요"
+              className="flex-1 px-4 py-3 text-base border-2 border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 transition-colors"
+            />
+            {hasApiKey && (
+              <div className="flex items-center gap-2 px-4 py-3 bg-green-50 text-green-700 rounded-lg border-2 border-green-200">
+                <span className="text-lg">✓</span>
+                <span className="font-medium">저장됨</span>
+              </div>
+            )}
           </div>
           {!hasApiKey && (
-            <p className="text-sm mt-1 text-amber-700">API 키가 저장되지 않았습니다</p>
+            <p className="text-sm text-slate-500 mt-2">
+              API 키가 저장되지 않았습니다.
+            </p>
           )}
-        </button>
+        </div>
       </header>
-
-      <ApiKeyModal 
-        isOpen={isApiKeyModalOpen} 
-        onClose={() => setIsApiKeyModalOpen(false)} 
-      />
 
       <main className="pb-20">
         {state.step === 1 && renderStep1()}
