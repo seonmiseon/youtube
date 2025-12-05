@@ -7,7 +7,7 @@ const getApiKey = (): string => {
   return '';
 };
 
-const API_BASE = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
+const API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
 // Step 1: 타깃 썸네일 + 제목 분석
 export const analyzeTargetThumbnailAndTitle = async (
