@@ -1,5 +1,4 @@
-﻿import { GoogleGenerativeAI } from "@google/generative-ai";
-import { ScriptAnalysis, TargetAnalysis, RecommendedContent, ScriptViralAnalysis, RecommendedTopic } from "../types";
+﻿import { ScriptAnalysis, TargetAnalysis, RecommendedContent, ScriptViralAnalysis, RecommendedTopic } from "../types";
 
 const getApiKey = (): string => {
   if (typeof window !== 'undefined' && window.localStorage) {
@@ -7,6 +6,8 @@ const getApiKey = (): string => {
   }
   return '';
 };
+
+const API_BASE = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
 
 // Step 1: 타깃 썸네일 + 제목 분석
 export const analyzeTargetThumbnailAndTitle = async (
@@ -17,16 +18,17 @@ export const analyzeTargetThumbnailAndTitle = async (
   
   try {
     if (!apiKey) throw new Error("API 키가 필요합니다");
-
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     
     const base64Data = thumbnailImage.split(',')[1];
-    const mimeType = thumbnailImage.split(':')[1].split(';')[0];
     
-    const result = await model.generateContent([
-      {
-        text: `다음 유튜브 썸네일 이미지와 제목을 분석하여 SEO, 후킹, 바이럴 요소를 추출하세요.
+    const response = await fetch(`${API_BASE}?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            {
+              text: `다음 유튜브 썸네일 이미지와 제목을 분석하여 SEO, 후킹, 바이럴 요소를 추출하세요.
 
 제목: "${title}"
 
@@ -42,18 +44,26 @@ JSON 형식으로 반환:
   "hookingElements": ["요소1", "요소2", ...],
   "viralFactors": ["요소1", "요소2", ...],
   "emotionalTone": "감정 설명"
-}` 
-      },
-      {
-        inlineData: {
-          mimeType: mimeType,
-          data: base64Data
-        }
-      }
-    ]);
+}`
+            },
+            {
+              inline_data: {
+                mime_type: "image/jpeg",
+                data: base64Data
+              }
+            }
+          ]
+        }]
+      })
+    });
 
-    const response = result.response;
-    const text = response.text();
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`API 오류: ${error}`);
+    }
+
+    const data = await response.json();
+    const text = data.candidates[0].content.parts[0].text;
     const cleanedText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     return JSON.parse(cleanedText);
 
@@ -71,11 +81,14 @@ export const recommendThumbnailsAndTitles = async (
   
   try {
     if (!apiKey) throw new Error("API 키가 필요합니다");
-
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     
-    const result = await model.generateContent(`다음 분석 결과를 바탕으로 야담 채널용 썸네일과 제목을 5개 추천하세요.
+    const response = await fetch(`${API_BASE}?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: `다음 분석 결과를 바탕으로 야담 채널용 썸네일과 제목을 5개 추천하세요.
 
 타깃 분석:
 - SEO 키워드: ${targetAnalysis.seoKeywords.join(', ')}
@@ -98,10 +111,19 @@ JSON 형식으로 반환:
     "reason": "추천 이유"
   },
   ...
-]`);
+]`
+          }]
+        }]
+      })
+    });
 
-    const response = result.response;
-    const text = response.text();
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`API 오류: ${error}`);
+    }
+
+    const data = await response.json();
+    const text = data.candidates[0].content.parts[0].text;
     const cleanedText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     return JSON.parse(cleanedText);
 
@@ -117,11 +139,14 @@ export const analyzeScriptViral = async (script: string): Promise<ScriptViralAna
   
   try {
     if (!apiKey) throw new Error("API 키가 필요합니다");
-
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     
-    const result = await model.generateContent(`다음 유튜브 대본의 바이럴 요소를 분석하세요.
+    const response = await fetch(`${API_BASE}?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: `다음 유튜브 대본의 바이럴 요소를 분석하세요.
 
 대본:
 ${script.substring(0, 5000)}
@@ -138,10 +163,19 @@ JSON 형식으로 반환:
   "sentenceStructure": "...",
   "emotionalFlow": "...",
   "viralElements": ["요소1", "요소2", ...]
-}`);
+}`
+          }]
+        }]
+      })
+    });
 
-    const response = result.response;
-    const text = response.text();
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`API 오류: ${error}`);
+    }
+
+    const data = await response.json();
+    const text = data.candidates[0].content.parts[0].text;
     const cleanedText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     return JSON.parse(cleanedText);
 
@@ -159,11 +193,14 @@ export const recommendTopics = async (
   
   try {
     if (!apiKey) throw new Error("API 키가 필요합니다");
-
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     
-    const result = await model.generateContent(`다음 바이럴 분석을 바탕으로 조선시대 야담 주제를 5개 추천하세요.
+    const response = await fetch(`${API_BASE}?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: `다음 바이럴 분석을 바탕으로 조선시대 야담 주제를 5개 추천하세요.
 
 바이럴 분석:
 - 후킹 전략: ${viralAnalysis.hookingStrategy}
@@ -184,10 +221,19 @@ JSON 형식으로 반환:
     "reason": "추천 이유"
   },
   ...
-]`);
+]`
+          }]
+        }]
+      })
+    });
 
-    const response = result.response;
-    const text = response.text();
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`API 오류: ${error}`);
+    }
+
+    const data = await response.json();
+    const text = data.candidates[0].content.parts[0].text;
     const cleanedText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     return JSON.parse(cleanedText);
 
@@ -208,11 +254,14 @@ export const generateOpening = async (
   
   try {
     if (!apiKey) throw new Error("API 키가 필요합니다");
-
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     
-    const result = await model.generateContent(`야담 채널 대본의 초반부를 작성하세요.
+    const response = await fetch(`${API_BASE}?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: `야담 채널 대본의 초반부를 작성하세요.
 
 썸네일: ${thumbnailDescription}
 제목: ${title}
@@ -232,10 +281,19 @@ JSON 형식으로 반환:
 {
   "opening30sec": "0~30초 대본",
   "opening2min": "0~2분 전체 대본"
-}`);
+}`
+          }]
+        }]
+      })
+    });
 
-    const response = result.response;
-    const text = response.text();
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`API 오류: ${error}`);
+    }
+
+    const data = await response.json();
+    const text = data.candidates[0].content.parts[0].text;
     const cleanedText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     return JSON.parse(cleanedText);
 
@@ -257,11 +315,14 @@ export const generateFinalScript = async (
   
   try {
     if (!apiKey) throw new Error("API 키가 필요합니다");
-
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     
-    const result = await model.generateContent(`${metaPrompt}
+    const response = await fetch(`${API_BASE}?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: `${metaPrompt}
 
 위 슈퍼 메타프롬프트에 따라 야담 대본을 작성하세요.
 
@@ -284,10 +345,19 @@ ${opening2min}
 - 야담 말투 100% 엄수
 - 총 ${videoLengthMinutes * 250}자 내외
 
-전체 대본을 작성하세요.`);
+전체 대본을 작성하세요.`
+          }]
+        }]
+      })
+    });
 
-    const response = result.response;
-    return response.text();
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`API 오류: ${error}`);
+    }
+
+    const data = await response.json();
+    return data.candidates[0].content.parts[0].text;
 
   } catch (error) {
     console.error("최종 대본 생성 실패:", error);
