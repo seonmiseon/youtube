@@ -19,7 +19,7 @@ export const analyzeTargetThumbnailAndTitle = async (
     if (!apiKey) throw new Error("API ?¤ê? ?„ìš”?©ë‹ˆ??);
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
     
     const base64Data = thumbnailImage.split(',')[1];
     const mimeType = thumbnailImage.split(':')[1].split(';')[0];
@@ -73,7 +73,7 @@ export const recommendThumbnailsAndTitles = async (
     if (!apiKey) throw new Error("API ?¤ê? ?„ìš”?©ë‹ˆ??);
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
     
     const result = await model.generateContent(`?¤ìŒ ë¶„ì„ ê²°ê³¼ë¥?ë°”íƒ•?¼ë¡œ ?¼ë‹´ ì±„ë„???¸ë„¤?¼ê³¼ ?œëª©??5ê°?ì¶”ì²œ?˜ì„¸??
 
@@ -119,7 +119,7 @@ export const analyzeScriptViral = async (script: string): Promise<ScriptViralAna
     if (!apiKey) throw new Error("API ?¤ê? ?„ìš”?©ë‹ˆ??);
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
     
     const result = await model.generateContent(`?¤ìŒ ? íŠœë¸??€ë³¸ì˜ ë°”ì´???”ì†Œë¥?ë¶„ì„?˜ì„¸??
 
@@ -161,7 +161,7 @@ export const recommendTopics = async (
     if (!apiKey) throw new Error("API ?¤ê? ?„ìš”?©ë‹ˆ??);
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
     
     const result = await model.generateContent(`?¤ìŒ ë°”ì´??ë¶„ì„??ë°”íƒ•?¼ë¡œ ì¡°ì„ ?œë? ?¼ë‹´ ì£¼ì œë¥?5ê°?ì¶”ì²œ?˜ì„¸??
 
@@ -210,7 +210,7 @@ export const generateOpening = async (
     if (!apiKey) throw new Error("API ?¤ê? ?„ìš”?©ë‹ˆ??);
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
     
     const result = await model.generateContent(`?¼ë‹´ ì±„ë„ ?€ë³¸ì˜ ì´ˆë°˜ë¶€ë¥??‘ì„±?˜ì„¸??
 
@@ -259,7 +259,7 @@ export const generateFinalScript = async (
     if (!apiKey) throw new Error("API ?¤ê? ?„ìš”?©ë‹ˆ??);
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
     
     const result = await model.generateContent(`${metaPrompt}
 
