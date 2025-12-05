@@ -20,12 +20,12 @@ export const analyzeTargetThumbnailAndTitle = async (
     if (!apiKey) throw new Error("API 키가 필요합니다");
 
     const ai = new GoogleGenAI({ apiKey });
-    const model = ai.models.get('gemini-2.0-flash-exp');
     
     const base64Data = thumbnailImage.split(',')[1];
     const mimeType = thumbnailImage.split(':')[1].split(';')[0];
     
-    const response = await model.generateContent({
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.0-flash-exp',
       contents: [{ 
         role: 'user', 
         parts: [
@@ -78,9 +78,9 @@ export const recommendThumbnailsAndTitles = async (
     if (!apiKey) throw new Error("API 키가 필요합니다");
 
     const ai = new GoogleGenAI({ apiKey });
-    const model = ai.models.get('gemini-2.0-flash-exp');
     
-    const response = await model.generateContent({
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.0-flash-exp',
       contents: [{ 
         role: 'user', 
         parts: [{ text: `다음 분석 결과를 바탕으로 야담 채널용 썸네일과 제목을 5개 추천하세요.
@@ -130,9 +130,9 @@ export const analyzeScriptViral = async (script: string): Promise<ScriptViralAna
     if (!apiKey) throw new Error("API 키가 필요합니다");
 
     const ai = new GoogleGenAI({ apiKey });
-    const model = ai.models.get('gemini-2.0-flash-exp');
     
-    const response = await model.generateContent({
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.0-flash-exp',
       contents: [{ 
         role: 'user', 
         parts: [{ text: `다음 유튜브 대본의 바이럴 요소를 분석하세요.
@@ -178,9 +178,9 @@ export const recommendTopics = async (
     if (!apiKey) throw new Error("API 키가 필요합니다");
 
     const ai = new GoogleGenAI({ apiKey });
-    const model = ai.models.get('gemini-2.0-flash-exp');
     
-    const response = await model.generateContent({
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.0-flash-exp',
       contents: [{ 
         role: 'user', 
         parts: [{ text: `다음 바이럴 분석을 바탕으로 조선시대 야담 주제를 5개 추천하세요.
@@ -233,9 +233,9 @@ export const generateOpening = async (
     if (!apiKey) throw new Error("API 키가 필요합니다");
 
     const ai = new GoogleGenAI({ apiKey });
-    const model = ai.models.get('gemini-2.0-flash-exp');
     
-    const response = await model.generateContent({
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.0-flash-exp',
       contents: [{ 
         role: 'user', 
         parts: [{ text: `야담 채널 대본의 초반부를 작성하세요.
@@ -288,9 +288,9 @@ export const generateFinalScript = async (
     if (!apiKey) throw new Error("API 키가 필요합니다");
 
     const ai = new GoogleGenAI({ apiKey });
-    const model = ai.models.get('gemini-2.0-flash-exp');
     
-    const response = await model.generateContent({
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.0-flash-exp',
       contents: [{ 
         role: 'user', 
         parts: [{ text: `${metaPrompt}
