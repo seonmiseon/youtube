@@ -234,30 +234,30 @@ export default function App() {
 
   // 헤더
   const renderHeader = () => (
-    <div className="bg-gradient-to-r from-blue-700 to-blue-500 text-white p-8 shadow-lg">
+    <div className="bg-white border-b-4 border-gray-200 p-8 shadow-md">
       <div className="max-w-6xl mx-auto">
-        <p className="text-2xl mb-4">📺 제작자: 클로이</p>
-        <h1 className="text-6xl font-bold mb-4">자생's 30초룰 대본 생성기</h1>
-        <p className="text-lg opacity-90">유튜브 야담 대본, 구조만 가져와서 내 주제로 다시 쓰기</p>
+        <p className="text-xl text-gray-800 mb-3">📺 제작자: 클로이</p>
+        <h1 className="text-6xl font-black text-black mb-4">30초룰 대본생성기 (야담전용)</h1>
+        <p className="text-2xl font-bold text-red-600">유튜브 떡상 대본, 구조만 가져와서 내 주제로 다시 쓰기</p>
         
-        <div className="mt-6 bg-white/10 rounded-xl p-4">
-          <label className="block text-sm font-semibold mb-2">🔑 Gemini API Key 설정</label>
+        <div className="mt-6 bg-gray-50 border-2 border-gray-300 rounded-xl p-4">
+          <label className="block text-sm font-semibold mb-2 text-gray-800">🔑 Gemini API Key 설정</label>
           <div className="flex gap-2">
             <input
               type="text"
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               placeholder="API 키를 입력하세요"
-              className="flex-1 px-4 py-2 rounded-lg text-gray-900"
+              className="flex-1 px-4 py-2 rounded-lg border-2 border-gray-300 text-gray-900"
             />
             <button
               onClick={saveApiKey}
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold"
+              className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold"
             >
               저장
             </button>
           </div>
-          {hasApiKey && <p className="text-sm mt-2 text-green-300">✓ API 키가 설정되었습니다</p>}
+          {hasApiKey && <p className="text-sm mt-2 text-green-600 font-semibold">✓ API 키가 설정되었습니다</p>}
         </div>
       </div>
     </div>
