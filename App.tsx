@@ -234,11 +234,11 @@ export default function App() {
 
   // 헤더
   const renderHeader = () => (
-    <div className="bg-gradient-to-r from-red-600 to-orange-500 text-white p-8 shadow-lg">
+    <div className="bg-gradient-to-r from-blue-700 to-blue-500 text-white p-8 shadow-lg">
       <div className="max-w-6xl mx-auto">
-        <p className="text-sm opacity-90 mb-2">제작자: 클로이</p>
-        <h1 className="text-4xl font-bold mb-4">자생's 30초룰 대본생성기 (야담채널)</h1>
-        <p className="text-lg opacity-90">유튜브 야담 대본 자동 생성 시스템</p>
+        <p className="text-2xl mb-4">📺 제작자: 클로이</p>
+        <h1 className="text-6xl font-bold mb-4">자생's 30초룰 대본 생성기</h1>
+        <p className="text-lg opacity-90">유튜브 야담 대본, 구조만 가져와서 내 주제로 다시 쓰기</p>
         
         <div className="mt-6 bg-white/10 rounded-xl p-4">
           <label className="block text-sm font-semibold mb-2">🔑 Gemini API Key 설정</label>

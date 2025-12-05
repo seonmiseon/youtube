@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { ScriptAnalysis, TargetAnalysis, RecommendedContent, ScriptViralAnalysis, RecommendedTopic } from "../types";
 
 const getApiKey = (): string => {
@@ -18,7 +18,7 @@ export const analyzeTargetThumbnailAndTitle = async (
   try {
     if (!apiKey) throw new Error("API 키가 필요합니다");
 
-    const genAI = new GoogleGenAI({ apiKey });
+    const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
     
     const base64Data = thumbnailImage.split(',')[1];
@@ -72,7 +72,7 @@ export const recommendThumbnailsAndTitles = async (
   try {
     if (!apiKey) throw new Error("API 키가 필요합니다");
 
-    const genAI = new GoogleGenAI({ apiKey });
+    const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
     
     const result = await model.generateContent(`다음 분석 결과를 바탕으로 야담 채널용 썸네일과 제목을 5개 추천하세요.
@@ -118,7 +118,7 @@ export const analyzeScriptViral = async (script: string): Promise<ScriptViralAna
   try {
     if (!apiKey) throw new Error("API 키가 필요합니다");
 
-    const genAI = new GoogleGenAI({ apiKey });
+    const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
     
     const result = await model.generateContent(`다음 유튜브 대본의 바이럴 요소를 분석하세요.
@@ -160,7 +160,7 @@ export const recommendTopics = async (
   try {
     if (!apiKey) throw new Error("API 키가 필요합니다");
 
-    const genAI = new GoogleGenAI({ apiKey });
+    const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
     
     const result = await model.generateContent(`다음 바이럴 분석을 바탕으로 조선시대 야담 주제를 5개 추천하세요.
@@ -209,7 +209,7 @@ export const generateOpening = async (
   try {
     if (!apiKey) throw new Error("API 키가 필요합니다");
 
-    const genAI = new GoogleGenAI({ apiKey });
+    const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
     
     const result = await model.generateContent(`야담 채널 대본의 초반부를 작성하세요.
@@ -258,7 +258,7 @@ export const generateFinalScript = async (
   try {
     if (!apiKey) throw new Error("API 키가 필요합니다");
 
-    const genAI = new GoogleGenAI({ apiKey });
+    const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
     
     const result = await model.generateContent(`${metaPrompt}
